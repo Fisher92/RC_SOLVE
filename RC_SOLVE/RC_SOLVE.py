@@ -3,7 +3,9 @@ import tkinter as Tk
 
 x=Cube.cube()
 
-
+x.turn_Y("R","CW")
+face = x.colour_map()
+print(face)
 
 
 class CubeGUI:
@@ -31,8 +33,8 @@ class CubeGUI:
         self.cBK = []
         self.cRi = []
         self.cLe = []
-        for i in range(3):
-            for j in range(3):
+        for j in range(3):
+            for i in range(3):
                 self.cUP.append(self.canvas.create_rectangle(self.cUP_xi[i],self.cUP_yi[j],self.cUP_xi[i]+self.sz,self.cUP_yi[j]+self.sz,fill='white'))
                 self.cFT.append(self.canvas.create_rectangle(self.cFT_xi[i],self.cFT_yi[j],self.cFT_xi[i]+self.sz,self.cFT_yi[j]+self.sz,fill='red'))
                 self.cDN.append(self.canvas.create_rectangle(self.cDN_xi[i],self.cDN_yi[j],self.cDN_xi[i]+self.sz,self.cDN_yi[j]+self.sz,fill='yellow'))
@@ -40,10 +42,27 @@ class CubeGUI:
                 self.cLe.append(self.canvas.create_rectangle(self.cLe_xi[i],self.cLe_yi[j],self.cLe_xi[i]+self.sz,self.cLe_yi[j]+self.sz,fill='green'))
                 self.cRi.append(self.canvas.create_rectangle(self.cRi_xi[i],self.cRi_yi[j],self.cRi_xi[i]+self.sz,self.cRi_yi[j]+self.sz,fill='blue'))
 
+    def map_face(self,face):
+        #Array Order: U0,D1,R2,L3,F4,B5,
+        for i, item in enumerate(self.cUP):
+            self.canvas.itemconfig(item,fill=face[0][i])
+        for i, item in enumerate(self.cDN):
+            self.canvas.itemconfig(item,fill=face[1][i])
+        for i, item in enumerate(self.cRi):
+            self.canvas.itemconfig(item,fill=face[2][i])
+        for i, item in enumerate(self.cLe):
+            self.canvas.itemconfig(item,fill=face[3][i])
+        for i, item in enumerate(self.cFT):
+            self.canvas.itemconfig(item,fill=face[4][i])
+        for i, item in enumerate(self.cBK):
+            self.canvas.itemconfig(item,fill=face[5][i])
+       
+
 window = Tk.Tk()
 window.title("GUI")
 
 geeks_bro = CubeGUI(window)
+geeks_bro.map_face(x.colour_map())
 window.mainloop()
 
 #while True:
