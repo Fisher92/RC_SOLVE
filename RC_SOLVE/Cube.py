@@ -2,6 +2,7 @@ import numpy as np
 #http://studentnet.cs.manchester.ac.uk/resources/library/3rd-year-projects/2015/aryeh.grosskopf.pdf
 #http://lghttp.38568.nexcesscdn.net/8013252/pdf/uploads/general_content/Rubiks_cube_3x3_solution-en.pdf
 #https://github.com/hkociemba/RubiksCube-TwophaseSolver
+#https://pypi.org/project/kociemba/
 
 class cube(object):
     """
