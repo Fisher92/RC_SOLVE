@@ -3,7 +3,7 @@ import tkinter as Tk
 
 x=Cube.cube()
 
-x.turn_Y("R","CW")
+x.turn_Y("R","CCW")
 face = x.colour_map()
 print(face)
 
