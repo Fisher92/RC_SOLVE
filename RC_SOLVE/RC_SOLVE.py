@@ -1,5 +1,9 @@
 import Cube
 import tkinter as Tk
+import kociemba as kc
+
+xx= kc.solve("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
+print(xx)
 
 x=Cube.cube()
 
