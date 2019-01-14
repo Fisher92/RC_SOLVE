@@ -10,6 +10,8 @@ class cube(object):
     """
     def __init__(self,istate = None):
         self.coldic = {"W":'white',"Y":'yellow',"B":'blue',"G":'green',"R":'red',"O":'orange'}
+        self.kocdic = {"W":'U',"Y":'D',"B":'R',"G":'L',"R":'F',"O":'B'}
+        self.kociemba = ""
 
         if istate:
             self.cube = istate
@@ -114,6 +116,24 @@ class cube(object):
         colour_map[4]=col_fn
         colour_map[5]=col_ba
         return(colour_map)
+
+    def ret_koc(self):
+        """Return kociemba Equivalent of Colour Map. Sinlge String denoting URFDLB,"""
+        #self.kocdic  U0,D1,R2,L3,F4,B5,
+        kocstr=""
+        for face in self.cube:
+            for row in face:  
+                for i in row:
+                    kocstr+=self.kocdic[i]
+        self.kociemba = kocstr[0:9] #U
+        self.kociemba += kocstr[18:27] #R
+        self.kociemba += kocstr[36:45] #F
+        self.kociemba += kocstr[9:18] #D
+        self.kociemba += kocstr[27:36] #L
+        self.kociemba += kocstr[45:54][::-1] #B
+        print(kocstr)
+        return(self.kociemba)
+
 
 
             

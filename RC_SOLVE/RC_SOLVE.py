@@ -2,15 +2,19 @@ import Cube
 import tkinter as Tk
 import kociemba as kc
 
-xx= kc.solve("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
-print(xx)
+
 
 x=Cube.cube()
 
 x.turn_Y("R","CCW")
+x.turn_Y("R","CCW")
+x.turn_Y("R","CCW")
 face = x.colour_map()
-print(face)
-
+#print(face)
+kocstring = x.ret_koc()
+print(kocstring)
+xx= kc.solve(kocstring) #"UUBUUBUUBRRRRRRRRRFFUFFUFFUDDFDDFDDFLLLLLLLLLDBBDBBDBB"BBDBBDBBD
+print(xx)
 
 class CubeGUI:
     def __init__(self,window):
