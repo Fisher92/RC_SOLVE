@@ -6,15 +6,15 @@ import kociemba as kc
 
 x=Cube.cube()
 
-x.turn_Y("R","CCW")
-x.turn_Y("R","CCW")
-x.turn_Y("R","CCW")
+x.RC_Turn("U'")
+#x.RC_Turn("R")
+x.RC_Turn("R'")
 face = x.colour_map()
 #print(face)
 kocstring = x.ret_koc()
 print(kocstring)
-xx= kc.solve(kocstring) #"UUBUUBUUBRRRRRRRRRFFUFFUFFUDDFDDFDDFLLLLLLLLLDBBDBBDBB"BBDBBDBBD
-print(xx)
+#xx= kc.solve(kocstring) #"UUBUUBUUBRRRRRRRRRFFUFFUFFUDDFDDFDDFLLLLLLLLLDBBDBBDBB"BBDBBDBBD
+#print(xx)
 
 class CubeGUI:
     def __init__(self,window):
@@ -23,18 +23,18 @@ class CubeGUI:
         self.px = 425 #Starting X Position
         self.py= 50 #Starting Y Position
         self.sz = 25
-        self.cUP_xi=[self.px+self.sz*i for i in range(3)]
+        self.cUP_xi=[self.sz + self.px+self.sz*i for i in range(3)]
         self.cUP_yi=[self.py+self.sz*i for i in range(3)]
-        self.cFT_xi=[self.px+self.sz*i for i in range(3)]
-        self.cFT_yi=[3*self.sz+self.py+self.sz*i for i in range(3)]
+        self.cFT_xi=[self.sz + self.px+self.sz*i for i in range(3)]
+        self.cFT_yi=[4*self.sz+self.py+self.sz*i for i in range(3)]
         self.cLe_xi=[self.px+self.sz*i-3*self.sz for i in range(3)]
-        self.cLe_yi=[3*self.sz+self.py+self.sz*i for i in range(3)]
-        self.cRi_xi=[self.px+self.sz*i+3*self.sz for i in range(3)]
-        self.cRi_yi=[3*self.sz+self.py+self.sz*i for i in range(3)]
-        self.cDN_xi=[self.px+self.sz*i for i in range(3)]
-        self.cDN_yi=[2*3*self.sz+self.py+self.sz*i for i in range(3)]
-        self.cBK_xi=[self.px+self.sz*i for i in range(3)]
-        self.cBK_yi=[3*3*self.sz+self.py+self.sz*i for i in range(3)]
+        self.cLe_yi=[4*self.sz+self.py+self.sz*i for i in range(3)]
+        self.cRi_xi=[self.px+self.sz*i+5*self.sz for i in range(3)]
+        self.cRi_yi=[4*self.sz+self.py+self.sz*i for i in range(3)]
+        self.cDN_xi=[self.sz + self.px+self.sz*i for i in range(3)]
+        self.cDN_yi=[2*self.sz+2*3*self.sz+self.py+self.sz*i for i in range(3)]
+        self.cBK_xi=[self.px+self.sz*i+9*self.sz for i in range(3)]#[3*self.sz+self.px+self.sz*i for i in range(3)]
+        self.cBK_yi=[4*self.sz+self.py+self.sz*i for i in range(3)]
         self.cUP = []
         self.cFT = []
         self.cDN = []
