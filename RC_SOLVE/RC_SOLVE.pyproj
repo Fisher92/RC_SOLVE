@@ -24,6 +24,9 @@
     <Compile Include="Cube.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Cube2.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RC_SOLVE.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
