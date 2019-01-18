@@ -43,8 +43,14 @@ class Cube(object):
         self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
         self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
-        self.TurnList = {'R':[[2,20],[5,23],[8,26],[20,29],[23,32],[26,35],[29,45],[32,48],[35,51],[45,2],[48,5],[51,8],
-                              [9,15],[10,12],[11,9],[12,16],[14,10],[15,17],[16,14],[17,11]]}
+        self.TurnList = {'R':[[2,20],[5,23],[8,26],[20,29],
+                              [23,32],[26,35],[29,51],[32,48],
+                              [35,45],[45,2],[48,5],[51,8],
+                              [9,15],[10,12],[11,9],[12,16],[14,10],[15,17],[16,14],[17,11]],
+                         'U':[[18,9],[9,45],[45,36],[36,18],
+                              [19,10],[10,46],[46,37],[37,19],
+                              [20,11],[11,47],[47,38],[38,20],
+                              [0,6],[1,3],[2,0],[3,7],[5,1],[6,8],[7,5],[8,2]]}
         self.kociemba = ""
         
         if istate:
@@ -55,13 +61,17 @@ class Cube(object):
                     self.cube.append(face)
                 
         print(self.cube)
+        #self.Turn("U")
         self.Turn("R")
-
+        self.Turn("U")
+        self.Turn("U")
+        self.Turn("R")
+        self.Turn("U")
     def Turn(self,Type):
-        tCube=[x for x in self.cube]
-        print(len(tCube))
-        if Type == "R":
-            for swap in self.TurnList['R']:
+        tCube=[self.kocdic2[x] for x in self.cube]
+        print(tCube)
+        if True:
+            for swap in self.TurnList[Type]:
                 print(swap)
                 self.cube[swap[0]] = self.kocdic2[tCube[swap[1]]]
             #print(self.cube)
