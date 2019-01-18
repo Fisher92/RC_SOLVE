@@ -23,6 +23,7 @@ class Cube(object):
         
         
         Cube Turns
+        FRULBD
     """
 
 #|--------|0, 1, 2 |--------|--------|  
@@ -45,12 +46,16 @@ class Cube(object):
         self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
         self.TurnList = {'R':[[2,20],[5,23],[8,26],[20,29],
                               [23,32],[26,35],[29,51],[32,48],
-                              [35,45],[45,2],[48,5],[51,8],
+                              [35,45],[45,8],[48,5],[51,2],
                               [9,15],[10,12],[11,9],[12,16],[14,10],[15,17],[16,14],[17,11]],
                          'U':[[18,9],[9,45],[45,36],[36,18],
                               [19,10],[10,46],[46,37],[37,19],
                               [20,11],[11,47],[47,38],[38,20],
-                              [0,6],[1,3],[2,0],[3,7],[5,1],[6,8],[7,5],[8,2]]}
+                              [0,6],[1,3],[2,0],[3,7],[5,1],[6,8],[7,5],[8,2]],
+                         'F':[[6,44],[44,29],[29,9],[9,6],
+                              [7,41],[41,28],[28,12],[12,7],
+                              [8,38],[38,27],[27,15],[15,8],
+                              [18,24],[19,21],[20,18],[21,25],[23,19],[24,26],[25,23],[26,20]]}
         self.kociemba = ""
         
         if istate:
@@ -61,22 +66,34 @@ class Cube(object):
                     self.cube.append(face)
                 
         print(self.cube)
-        #self.Turn("U")
         self.Turn("R")
-        self.Turn("U")
-        self.Turn("U")
+        self.Turn("U",False)
+        self.Turn("F")
         self.Turn("R")
-        self.Turn("U")
-    def Turn(self,Type):
+        self.Turn("F",False)
+        self.Turn("R")
+        self.Turn("F",False)
+        self.Turn("R",False)
+        self.Turn("U",False)
+        self.Turn("F")
+        self.Turn("R")
+        self.Turn("F")
+        self.Turn("R",False)
+        self.Turn("F")
+       
+    def Turn(self,Type,CW=True):
         tCube=[self.kocdic2[x] for x in self.cube]
         print(tCube)
-        if True:
+        if CW:
             for swap in self.TurnList[Type]:
                 print(swap)
                 self.cube[swap[0]] = self.kocdic2[tCube[swap[1]]]
-            #print(self.cube)
+        else:
+            for swap in self.TurnList[Type]:
+                print(swap)
+                self.cube[swap[1]] = self.kocdic2[tCube[swap[0]]]
         del(tCube)
-        print(self.cube)
+        
     def colour_map(self):
         """Return Array of Length 9 with face Colours"""
         #Array Order: U0,D1,R2,L3,F4,B5,
