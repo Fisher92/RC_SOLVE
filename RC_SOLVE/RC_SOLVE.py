@@ -1,4 +1,5 @@
 #import Cube
+
 import Cube2
 import tkinter as Tk
 import kociemba as kc
@@ -22,7 +23,9 @@ if True:
     print(xx)
 
     class CubeGUI:
-        def __init__(self,window):
+        def __init__(self,window,cube,xx):
+            self.xx = xx
+            self.cube = cube
             self.canvas = Tk.Canvas(window,width=1000,height=1000)
             self.canvas.pack()
             self.px = 425 #Starting X Position
@@ -54,6 +57,20 @@ if True:
                     self.cBK.append(self.canvas.create_rectangle(self.cBK_xi[i],self.cBK_yi[j],self.cBK_xi[i]+self.sz,self.cBK_yi[j]+self.sz,fill='orange'))
                     self.cLe.append(self.canvas.create_rectangle(self.cLe_xi[i],self.cLe_yi[j],self.cLe_xi[i]+self.sz,self.cLe_yi[j]+self.sz,fill='green'))
                     self.cRi.append(self.canvas.create_rectangle(self.cRi_xi[i],self.cRi_yi[j],self.cRi_xi[i]+self.sz,self.cRi_yi[j]+self.sz,fill='blue'))
+            self.next = Tk.Button(text ="Next", command = self.helloCallBack)
+            self.next.pack()
+            self.step = 0
+        def helloCallBack(self):
+            step = self.xx[self.step]
+            if xx[self.step+1]=="'":
+                self.step+=1
+                CW=False
+            else:
+                CW = True
+            self.step+=1
+            print(step,CW)
+            self.cube.Turn(step,CW)
+            self.map_face(x.colour_map())
 
         def map_face(self,face):
             #Array Order: U0,D1,R2,L3,F4,B5,
@@ -74,7 +91,7 @@ if True:
     window = Tk.Tk()
     window.title("GUI")
 
-    geeks_bro = CubeGUI(window)
+    geeks_bro = CubeGUI(window,x,xx)
     geeks_bro.map_face(x.colour_map())
     window.mainloop()
 
