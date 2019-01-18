@@ -16,10 +16,10 @@ if True:
     #x.RC_Turn("R'")
     face = x.colour_map()
     #print(face)
-    #kocstring = x.ret_koc()
-    #print(kocstring)
-    #xx= kc.solve(kocstring) #"UUBUUBUUBRRRRRRRRRFFUFFUFFUDDFDDFDDFLLLLLLLLLDBBDBBDBB"BBDBBDBBD
-    #print(xx)
+    kocstring = x.ret_koc()
+    print(kocstring)
+    xx= kc.solve(kocstring) #"UUBUUBUUBRRRRRRRRRFFUFFUFFUDDFDDFDDFLLLLLLLLLDBBDBBDBB"BBDBBDBBD
+    print(xx)
 
     class CubeGUI:
         def __init__(self,window):

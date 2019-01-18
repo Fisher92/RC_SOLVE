@@ -5,17 +5,12 @@ from copy import deepcopy as dc
 #http://lghttp.38568.nexcesscdn.net/8013252/pdf/uploads/general_content/Rubiks_cube_3x3_solution-en.pdf
 #https://github.com/hkociemba/RubiksCube-TwophaseSolver
 #https://pypi.org/project/kociemba/
+ 
 
 class Cube(object):
     """
     Cube State and Operations
             Cube Structure
-    --- [UP[W,W,W,W,W,W]
-         DN[Y,Y,Y,Y,Y,Y]
-         RI[R,R,R,R,R,R]
-         LE[O,O,O,O,O,O]
-         FN[G,G,G,G,G,G]
-         BA[B,B,B,B,B,B]] ---
     
             kociemba Structure
     --- U1, U2, U3, U4, U5, U6, U7, U8, U9,
@@ -29,20 +24,49 @@ class Cube(object):
         
         Cube Turns
     """
+
+#|--------|0, 1, 2 |--------|--------|  
+#|--------|3, 4, 5 |--------|--------|
+#|--------|6, 7, 8 |--------|--------|
+#------------------------------------
+#|36,37,38|18,19,20|9, 10,11|45,46,47|
+#|39,40,41|21,22,23|12,13,14|48,49,50|
+#|42,43,44|24,25,26|15,16,17|51,52,53|
+#------------------------------------
+#|--------|27,28,29|--------|--------|  
+#|--------|30,31,32|--------|--------|  
+#|--------|33,34,35|--------|--------| 
+
     def __init__(self,istate = None):
-        self.cube = ""
+        self.cube = []
+        #self.face={'U'}
         self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
+        self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
+        self.TurnList = {'R':[[2,20],[5,23],[8,26],[20,29],[23,32],[26,35],[29,45],[32,48],[35,51],[45,2],[48,5],[51,8],
+                              [9,15],[10,12],[11,9],[12,16],[14,10],[15,17],[16,14],[17,11]]}
         self.kociemba = ""
         
         if istate:
             self.cube = istate
         else:        
             for face in "URFDLB":
-                self.cube +=(face*9)
+                for i in range(9):
+                    self.cube.append(face)
                 
         print(self.cube)
-   
+        self.Turn("R")
+
+    def Turn(self,Type):
+        tCube=[x for x in self.cube]
+        print(len(tCube))
+        if Type == "R":
+            for swap in self.TurnList['R']:
+                print(swap)
+                self.cube[swap[0]] = self.kocdic2[tCube[swap[1]]]
+            #print(self.cube)
+        del(tCube)
+        print(self.cube)
     def colour_map(self):
         """Return Array of Length 9 with face Colours"""
         #Array Order: U0,D1,R2,L3,F4,B5,
@@ -53,18 +77,19 @@ class Cube(object):
         col_fn = []
         col_ba = []
         colour_map=[[],[],[],[],[],[],[]]
+        testdtr = ''.join(map(str, self.cube))
         for i in range(9):
-            col_up.append(self.coldic[self.cube[i]])
+            col_up.append(self.coldic[testdtr[i]])
         for i in range(9,18):
-            col_dn.append(self.coldic[self.cube[i]])
+            col_ri.append(self.coldic[testdtr[i]])
         for i in range(18,27):
-            col_ri.append(self.coldic[self.cube[i]])   
+            col_fn.append(self.coldic[testdtr[i]])   
         for i in range(27,36):
-            col_le.append(self.coldic[self.cube[i]])
+            col_dn.append(self.coldic[testdtr[i]])
         for i in range(36,45):
-            col_fn.append(self.coldic[self.cube[i]])
+            col_le.append(self.coldic[testdtr[i]])
         for i in range(45,54):
-            col_ba.append(self.coldic[self.cube[i]])  
+            col_ba.append(self.coldic[testdtr[i]])  
 
         colour_map[0]=col_up
         colour_map[1]=col_dn
@@ -86,18 +111,18 @@ class Cube(object):
                 #U0,D1,R2,L3,F4,B5,
         
         kocstr=""
-        
-        for face in self.cube:
-            for row in face:  
-                for i in row:
-                    kocstr+=self.kocdic[i]
-        self.kociemba = kocstr[0:9] #U
-        self.kociemba += kocstr[18:27] #R
-        self.kociemba += kocstr[36:45] #F
-        self.kociemba += kocstr[9:18] #D
-        self.kociemba += kocstr[27:36] #L
-        self.kociemba += kocstr[45:54]#[::-1] #B
-        print(kocstr)
+        self.kociemba=''.join(map(str, self.cube))
+        #for face in self.cube:
+        #    for row in face:  
+        #        for i in row:
+       #             kocstr+=self.kocdic[i]
+       # self.kociemba = kocstr[0:9] #U
+       # self.kociemba += kocstr[18:27] #R
+       # self.kociemba += kocstr[36:45] #F
+       # self.kociemba += kocstr[9:18] #D
+       # self.kociemba += kocstr[27:36] #L
+       # self.kociemba += kocstr[45:54]#[::-1] #B
+       # print(kocstr)
         return(self.kociemba)
 
 
