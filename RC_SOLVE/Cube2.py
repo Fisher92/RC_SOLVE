@@ -25,19 +25,6 @@ class Cube(object):
         Cube Turns
         FRULBD
     """
-
-#|--------|0, 1, 2 |--------|--------|  
-#|--------|3, 4, 5 |--------|--------|
-#|--------|6, 7, 8 |--------|--------|
-#------------------------------------
-#|36,37,38|18,19,20|9, 10,11|45,46,47|
-#|39,40,41|21,22,23|12,13,14|48,49,50|
-#|42,43,44|24,25,26|15,16,17|51,52,53|
-#------------------------------------
-#|--------|27,28,29|--------|--------|  
-#|--------|30,31,32|--------|--------|  
-#|--------|33,34,35|--------|--------| 
-
     def __init__(self,CubeDef = None):
         print("#|--------|0, 1, 2 |--------|--------|")  
         print("#|--------|3, 4, 5 |--------|--------|")
@@ -51,10 +38,8 @@ class Cube(object):
         print("#|--------|30,31,32|--------|--------|")  
         print("#|--------|33,34,35|--------|--------| ")
         self.cube = []
-        
-
-        self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
-        self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
+        #self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
+        #self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
         self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
         self.TurnList = {'R':((2,20),(5,23),(8,26),(20,29),
                               (23,32),(26,35),(29,51),(32,48),
@@ -72,9 +57,7 @@ class Cube(object):
                               (21,3),(3,50),(50,30),(30,21),
                               (24,6),(6,47),(47,33),(33,24),
                               (36,42),(37,39),(38,36),(39,43),(41,37),(42,44),(43,41),(44,38))}
-        
-        self.kociemba = ""
-        
+                
         if CubeDef:
             self.cube = CubeDef
         else:        
@@ -82,66 +65,33 @@ class Cube(object):
                 for i in range(9):
                     self.cube.append(face)
         
-        self.Turn("F",False) 
-        self.Turn("R") 
-        self.Turn("L",False)               
-        self.Turn("U")
-        self.Turn("L")
        
-       
-    def Turn(self,Type,CW=True):
+    def Turn(self,Type):
         tCube=[x for x in self.cube]
+        CW = True
+        if len(Type) ==2:
+            if Type[1] == "'":
+                CW = False
         if CW:
             swapi, swapj = 0,1
         else:
             swapi, swapj = 1,0
             
-        for swap in self.TurnList[Type]:
-            self.cube[swap[swapi]] = tCube[swap[swapj]]#self.kocdic2[tCube[swap[swapj]]]
-        
-        #del(tCube)
-        
-    def colour_map(self):
-        """Return Array of Length 9 with face Colours"""
-        #Array Order: U0,D1,R2,L3,F4,B5,
-        col_up = []
-        col_dn = []
-        col_ri = []
-        col_le = []
-        col_fn = []
-        col_ba = []
-        colour_map=[[],[],[],[],[],[],[]]
-        testdtr = ''.join(map(str, self.cube))
-        for i in range(9):
-            col_up.append(self.coldic[testdtr[i]])
-        for i in range(9,18):
-            col_ri.append(self.coldic[testdtr[i]])
-        for i in range(18,27):
-            col_fn.append(self.coldic[testdtr[i]])   
-        for i in range(27,36):
-            col_dn.append(self.coldic[testdtr[i]])
-        for i in range(36,45):
-            col_le.append(self.coldic[testdtr[i]])
-        for i in range(45,54):
-            col_ba.append(self.coldic[testdtr[i]])  
+        for swap in self.TurnList[Type[0]]:
+            self.cube[swap[swapi]] = tCube[swap[swapj]]
+              
+    def definition(self):
+        definition = [x for x in self.cube]
+        return(definition)
 
-        colour_map[0]=col_up
-        colour_map[1]=col_dn
-        colour_map[2]=col_ri
-        colour_map[3]=col_le
-        colour_map[4]=col_fn
-        colour_map[5]=col_ba
-        return(colour_map)
-
-    def ret_koc(self):
+    def kociemba(self):
         """Return kociemba Equivalent of Colour Map. Sinlge String denoting URFDLB
             U1, U2, U3, U4, U5, U6, U7, U8, U9,
             R1, R2, R3, R4, R5, R6, R7, R8, R9,
             F1, F2, F3, F4, F5, F6, F7, F8, F9, 
             D1, D2, D3, D4, D5, D6, D7, D8, D9, 
             L1, L2, L3, L4, L5, L6, L7, L8, L9, 
-            B1, B2, B3, B4, B5, B6, B7, B8, B9."""
-        
+            B1, B2, B3, B4, B5, B6, B7, B8, B9."""       
         self.kociemba=''.join(map(str, self.cube))
         return(self.kociemba)
 
