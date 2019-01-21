@@ -1,17 +1,21 @@
 #import Cube
-
 import Cube2
 import tkinter as Tk
 import kociemba as kc
+#import threading
+import imutils as imu
+import PIL.Image, PIL.ImageTk
+import cv2
 
 class CubeGUI:
-    def __init__(self,window,Cube):           
+    def __init__(self,window,Cube,video_source):           
         self.cube = Cube
         self.steplist = []
         self.step=0
-        self.canvas = Tk.Canvas(window,width=1000,height=1000)
-        self.canvas.pack()
-        self.px = 425 #Starting X Position
+        self.window = window
+        self.canvas = Tk.Canvas(self.window,width=800,height=400)
+        self.canvas.pack(anchor = 'nw')
+        self.px = 100 #Starting X Position
         self.py= 50 #Starting Y Position
         self.sz = 25
         self.cUp_xi=[self.sz + self.px+self.sz*i for i in range(3)]
@@ -32,6 +36,15 @@ class CubeGUI:
         self.cBk = []
         self.cRi = []
         self.cLe = []
+
+        self.video_source = video_source
+        self.vid = MyVideoCapture(video_source)
+        #self.LS_canvas =  Tk.Canvas(self.window, width = 300, height = 300)
+        #self.LS_canvas.pack(anchor = 'ne')
+        self.delay = 15
+        
+
+
         for j in range(3):
             for i in range(3):
                 self.cUp.append(self.canvas.create_rectangle(self.cUp_xi[i],self.cUp_yi[j],self.cUp_xi[i]+self.sz,self.cUp_yi[j]+self.sz,fill='white'))
@@ -55,6 +68,10 @@ class CubeGUI:
         self.step = 0
         self.face_colours = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         self.map_face()
+
+        self.update()
+
+        self.window.mainloop()
 
     def Solve(self):
         self.steplist = kc.solve(self.cube.kociemba()).split()
@@ -85,12 +102,51 @@ class CubeGUI:
         for index, cubit in enumerate(self.faces['Le']):
             self.canvas.itemconfig(cubit,fill=self.face_colours[cube_list[index+36]])
         for index, cubit in enumerate(self.faces['Bk']):
-            self.canvas.itemconfig(cubit,fill=self.face_colours[cube_list[index+45]])    
+            self.canvas.itemconfig(cubit,fill=self.face_colours[cube_list[index+45]])
 
-    
+    def update(self):
+
+        ret, frame = self.vid.get_frame()
+        frame = imu.resize(frame,300,300)
+        if ret:
+            self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
+            self.canvas.create_image(500, self.py, image = self.photo, anchor = Tk.NW)
+ 
+        self.window.after(self.delay, self.update)    
+           
+        #self.window.after(self.delay, self.update)
+            
+class MyVideoCapture:
+    def __init__(self, video_source=0):
+        # Open the video source
+        self.vid = cv2.VideoCapture(video_source)
+        if not self.vid.isOpened():
+            raise ValueError("Unable to open video source", video_source)
+
+        # Get video source width and height
+        self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+ 
+    # Release the video source when the object is destroyed
+    def __del__(self):
+        if self.vid.isOpened():
+            self.vid.release()
+        self.window.mainloop()
+
+    def get_frame(self):
+        if self.vid.isOpened():
+            ret, frame = self.vid.read()
+            if ret:
+                # Return a boolean success flag and the current frame converted to BGR
+                return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            else:
+                return (ret, None)
+        else:
+            return (ret, None)
+
 Cube = Cube2.Cube()
 Cube.Turn("R")
-Cube.Turn("R")
+#Cube.Turn("L")
 Cube.Turn("U")
 Cube.Turn("F'")
 Cube.Turn("R'")
@@ -98,7 +154,7 @@ Cube.Turn("U")
 Cube.Turn("L")
 window = Tk.Tk()
 window.title("Rubiks Cube Solver")
-CubeG = CubeGUI(window,Cube)
+CubeG = CubeGUI(window,Cube,0)
 
-window.mainloop()
+#window.mainloop()
 

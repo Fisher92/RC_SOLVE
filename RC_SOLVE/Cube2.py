@@ -18,10 +18,8 @@ class Cube(object):
         F1, F2, F3, F4, F5, F6, F7, F8, F9, 
         D1, D2, D3, D4, D5, D6, D7, D8, D9, 
         L1, L2, L3, L4, L5, L6, L7, L8, L9, 
-        B1, B2, B3, B4, B5, B6, B7, B8, B9. ---
-    
-        
-        
+        B1, B2, B3, B4, B5, B6, B7, B8, B9. ---  
+                
         Cube Turns
         FRULBD
     """
@@ -40,7 +38,7 @@ class Cube(object):
         self.cube = []
         #self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         #self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
-        self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
+        #self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
         self.TurnList = {'R':((2,20),(5,23),(8,26),(20,29),
                               (23,32),(26,35),(29,51),(32,48),
                               (35,45),(45,8),(48,5),(51,2),
