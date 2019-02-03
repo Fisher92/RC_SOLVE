@@ -1,5 +1,6 @@
 #import Cube
 import Cube2
+import math
 import tkinter as Tk
 import kociemba as kc
 #import threading
@@ -8,11 +9,14 @@ import PIL.Image, PIL.ImageTk
 import cv2
 
 class CubeGUI:
-    def __init__(self,window,Cube,video_source):           
+    def __init__(self,Cube,video_source):           
+        self.window = Tk.Tk()
+        self.config= Tk.Tk()
         self.cube = Cube
+        self.video_source = video_source
         self.steplist = []
+        self.cal_RGB = []
         self.step=0
-        self.window = window
         self.canvas = Tk.Canvas(self.window,width=800,height=400)
         self.canvas.pack(anchor = 'nw')
         self.px = 100 #Starting X Position
@@ -37,11 +41,7 @@ class CubeGUI:
         self.cRi = []
         self.cLe = []
 
-        self.video_source = video_source
-        self.vid = MyVideoCapture(video_source)
-        #self.LS_canvas =  Tk.Canvas(self.window, width = 300, height = 300)
-        #self.LS_canvas.pack(anchor = 'ne')
-        self.delay = 15
+
         
 
 
@@ -56,21 +56,40 @@ class CubeGUI:
                 
         self.faces = {'Up':self.cUp,'Dn':self.cDn,'Ri':self.cRi,'Le':self.cLe,'Ft':self.cFt,'Bk':self.cBk}                
                 
+        lbl_cR = Tk.Label(self.config,text="R  ")
+        lbl_cR.grid(row=0,column=1,sticky='e')
+        lbl_cG = Tk.Label(self.config,text="G  ")
+        lbl_cG.grid(row=0,column=2,sticky='e')
+        lbl_cB = Tk.Label(self.config,text="B  ")
+        lbl_cB.grid(row=0,column=3,sticky='e')
+        lbl_fU = Tk.Label(self.config,text="Up (W)")
+        lbl_fU.grid(row=1,column=0,sticky='ns')
+        for i in range(18):
+            self.cal_RGB.append(Tk.Scale(self.config,from_=0,to=255,orient = "vertical"))
+        for idx,item in enumerate(self.cal_RGB):
+            item.grid(row=math.floor(idx/3)+1,column = idx%3+1)
+
         self.next = Tk.Button(text ="Next", command = self.Next)
         self.next.pack()
+
         self.solve = Tk.Button(text ="Solve", command = self.Solve)
         self.solve.pack()
 
         self.lbl_sol = Tk.Label(text = "Solution")
-
         self.lbl_sol.pack()
 
         self.step = 0
         self.face_colours = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
+        
+        
+        self.vid = MyVideoCapture(video_source)
+        
+        
+        
+        self.delay = 15
+        
         self.map_face()
-
         self.update()
-
         self.window.mainloop()
 
     def Solve(self):
@@ -152,9 +171,10 @@ Cube.Turn("F'")
 Cube.Turn("R'")
 Cube.Turn("U")
 Cube.Turn("L")
-window = Tk.Tk()
-window.title("Rubiks Cube Solver")
-CubeG = CubeGUI(window,Cube,0)
+#window = Tk.Tk()
+#config = Tk.Tk()
+#window.title("Rubiks Cube Solver")
+CubeG = CubeGUI(Cube,0)
 
 #window.mainloop()
 
