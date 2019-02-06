@@ -7,15 +7,20 @@ import kociemba as kc
 import imutils as imu
 import PIL.Image, PIL.ImageTk
 import cv2
+import numpy as np
+from imutils.video import VideoStream
+from scipy.spatial import distance as dist
+from collections import OrderedDict
 
 class CubeGUI:
     def __init__(self,Cube,video_source):           
         self.window = Tk.Tk()
-        self.config= Tk.Tk()
+        #self.config= Tk.Tk()
+        #self.c_win = None
         self.cube = Cube
         self.video_source = video_source
         self.steplist = []
-        self.cal_RGB = []
+        self.calibration_RGB = []
         self.step=0
         self.canvas = Tk.Canvas(self.window,width=800,height=400)
         self.canvas.pack(anchor = 'nw')
@@ -40,9 +45,39 @@ class CubeGUI:
         self.cBk = []
         self.cRi = []
         self.cLe = []
-
-
         
+        self.detect_colour = True
+        #self.nearest = [Tk.StringVar()]*9
+      
+        self.refPt = []
+
+        self.Face_Rectangles = []
+        self.start = (30,30)
+        self.size = 50
+        self.space = 40
+        for j in range(3):
+            for i in range(3):
+                self.Face_Rectangles.append([(self.start[0]+i*self.size+i*self.space,self.start[1]+j*self.size+j*self.space),\
+                                       (self.start[0]+i*self.size+i*self.space+self.size,self.start[1]+j*self.size+j*self.space+self.size)])
+
+
+
+        self.colors = OrderedDict({
+			        "red": [230, 80, 60],
+			        "green": [30, 200, 120],
+			        "blue": [0, 0, 255],
+			        "orange":[255,165,40],
+			        "white":[200,200,200],
+			        "yellow":[250,250,100]})
+
+        self.lab = np.zeros((len(self.colors), 1, 3), dtype="uint8")
+        self.colorNames = []
+
+        # loop over the colors dictionary
+        for (i, (name, rgb)) in enumerate(self.colors.items()):
+	        # update the L*a*b* array and the color names list
+            self.lab[i] = rgb
+            self.colorNames.append(name)
 
 
         for j in range(3):
@@ -56,21 +91,13 @@ class CubeGUI:
                 
         self.faces = {'Up':self.cUp,'Dn':self.cDn,'Ri':self.cRi,'Le':self.cLe,'Ft':self.cFt,'Bk':self.cBk}                
                 
-        lbl_cR = Tk.Label(self.config,text="R  ")
-        lbl_cR.grid(row=0,column=1,sticky='e')
-        lbl_cG = Tk.Label(self.config,text="G  ")
-        lbl_cG.grid(row=0,column=2,sticky='e')
-        lbl_cB = Tk.Label(self.config,text="B  ")
-        lbl_cB.grid(row=0,column=3,sticky='e')
-        lbl_fU = Tk.Label(self.config,text="Up (W)")
-        lbl_fU.grid(row=1,column=0,sticky='ns')
-        for i in range(18):
-            self.cal_RGB.append(Tk.Scale(self.config,from_=0,to=255,orient = "vertical"))
-        for idx,item in enumerate(self.cal_RGB):
-            item.grid(row=math.floor(idx/3)+1,column = idx%3+1)
+        
 
         self.next = Tk.Button(text ="Next", command = self.Next)
         self.next.pack()
+
+        self.config = Tk.Button(text ="Config", command = self.Config_Window)
+        self.config.pack()
 
         self.solve = Tk.Button(text ="Solve", command = self.Solve)
         self.solve.pack()
@@ -92,6 +119,44 @@ class CubeGUI:
         self.update()
         self.window.mainloop()
 
+    def Config_Window(self):
+        
+        try:
+            c_win.destroy()
+        except:
+            pass
+        
+        c_win = Tk.Toplevel(self.window)
+        c_win_svar = []
+        cal_RGB = []
+
+        lbl_cR = Tk.Label(c_win,text="R  ")
+        lbl_cR.grid(row=0,column=1,sticky='e')
+        lbl_cG = Tk.Label(c_win,text="G  ")
+        lbl_cG.grid(row=0,column=2,sticky='e')
+        lbl_cB = Tk.Label(c_win,text="B  ")
+        lbl_cB.grid(row=0,column=3,sticky='e')
+        lbl_fU = Tk.Label(c_win,text="Up (W)")
+        lbl_fU.grid(row=1,column=0,sticky='ns')
+        for i in range(18):
+            cal_RGB.append(Tk.Scale(c_win,from_=0,to=255,orient = "vertical"))
+            c_win_svar.append(Tk.StringVar())
+        for idx,item in enumerate(cal_RGB):
+            item.grid(row=math.floor(idx/3)+1,column = idx%3+1)
+            item.bind("<ButtonRelease-1>",self.getValue)
+            #item.bind("<ButtonRelease-1>", self.updatecolordic)
+        #    Tk.Label(c_win,textvariable = self.nearest[0]).grid(row=math.floor(idx/3)+1,column = 5)
+        #c_win_svar[0].set(str(self.nearest[0]))
+        #print(str(self.nearest))
+        for i,item in enumerate(self.colors.get('red')):
+            cal_RGB[i].set(item)
+            
+        print("HERE")
+        Btn_Quit = Tk.Button(c_win, text="Quit", command=c_win.destroy)
+        Btn_Quit.grid(row=10,column=2)
+
+    def getValue(self,event):
+        print(event)
     def Solve(self):
         self.steplist = kc.solve(self.cube.kociemba()).split()
         print(self.steplist)
@@ -126,7 +191,48 @@ class CubeGUI:
     def update(self):
 
         ret, frame = self.vid.get_frame()
-        frame = imu.resize(frame,300,300)
+        frame = imu.resize(frame,400,400)
+
+
+        mask = np.zeros(frame.shape[:2], dtype="uint8")
+        #c = np.array([[200,150],[260,210]])
+        #cv2.drawContours(mask, c, -1, 255, -1)
+        test = np.copy(frame)
+
+        for item in self.Face_Rectangles:
+		#cv2.rectangle(frame,(200,150),(260,210),(0,255,0),3)
+            cv2.rectangle(frame,item[0],item[1],(0,255,0),3)
+
+        if self.detect_colour:
+            for number, item in enumerate(self.Face_Rectangles):
+                minDist = (np.inf, None)
+                #mask = cv2.erode(test[150:210,200:260], None, iterations=2)
+                mask = cv2.erode(test[item[0][0]:item[1][0],item[0][1]:item[1][1]], None, iterations=2)
+                b,g,r,_=np.uint8(cv2.mean(mask))
+                mean = cv2.mean(mask)
+
+                for (i, row) in enumerate(self.lab):
+                #print(i,row)
+                # compute the distance between the current L*a*b*
+                # color value and the mean of the image
+                #    pass
+                #print(row[0])
+                    d = dist.euclidean(row[0], mean[:3])
+                #print(d)
+                # if the distance is smaller than the current distance,
+                # then update the bookkeeping variable
+                    if d < minDist[0]:
+                        minDist = (d, i)
+
+                
+                cv2.putText(frame,self.colorNames[minDist[1]],(item[0][0],item[0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+                 
+         
+                # return the name of the color with the smallest distance
+                #print(self.colorNames[minDist[1]])
+            
+                #self.nearest[number].set(self.colorNames[minDist[1]])
+                #self.detect_colour = False
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
             self.canvas.create_image(500, self.py, image = self.photo, anchor = Tk.NW)
