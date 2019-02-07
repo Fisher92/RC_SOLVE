@@ -45,7 +45,9 @@ class CubeGUI:
         self.cBk = []
         self.cRi = []
         self.cLe = []
-        
+        self.cal_var = []#[[Tk.IntVar()]*18]
+        for i in range(18):
+            self.cal_var.append(Tk.IntVar())
         self.detect_colour = True
         #self.nearest = [Tk.StringVar()]*9
       
@@ -136,27 +138,59 @@ class CubeGUI:
         lbl_cG.grid(row=0,column=2,sticky='e')
         lbl_cB = Tk.Label(c_win,text="B  ")
         lbl_cB.grid(row=0,column=3,sticky='e')
-        lbl_fU = Tk.Label(c_win,text="Up (W)")
-        lbl_fU.grid(row=1,column=0,sticky='ns')
+        #URFDLB
+        for i , face in enumerate("URFDLB"):
+            Tk.Label(c_win,text = self.face_colours[face]+" ("+face+")").grid(row = i+1,column=0,sticky="ns")
+        #lbl_fU = Tk.Label(c_win,text="Up (W)")
+        #lbl_fU.grid(row=1,column=0,sticky='ns')
+
+        #lbl_fR = Tk.Label(c_win,text="Right (W)")
+        #lbl_fR.grid(row=1,column=0,sticky='ns')
+
+        #lbl_fU = Tk.Label(c_win,text="Up (W)")
+        #lbl_fU.grid(row=1,column=0,sticky='ns')
+
+        #lbl_fU = Tk.Label(c_win,text="Up (W)")
+        #lbl_fU.grid(row=1,column=0,sticky='ns')
+
+        #lbl_fU = Tk.Label(c_win,text="Up (W)")
+        #lbl_fU.grid(row=1,column=0,sticky='ns')
+
+        #lbl_fU = Tk.Label(c_win,text="Up (W)")
+        #lbl_fU.grid(row=1,column=0,sticky='ns')
+
+        #lbl_fU = Tk.Label(c_win,text="Up (W)")
+        #lbl_fU.grid(row=1,column=0,sticky='ns')
+        
+        
         for i in range(18):
-            cal_RGB.append(Tk.Scale(c_win,from_=0,to=255,orient = "vertical"))
-            c_win_svar.append(Tk.StringVar())
+            cal_RGB.append(Tk.Scale(c_win,from_=0,to=255,orient = "vertical",variable = self.cal_var[i]))
+            #c_win_svar.append(Tk.StringVar())
         for idx,item in enumerate(cal_RGB):
             item.grid(row=math.floor(idx/3)+1,column = idx%3+1)
-            item.bind("<ButtonRelease-1>",self.getValue)
+            item.bind("<ButtonRelease-1>",self.SetValue)
             #item.bind("<ButtonRelease-1>", self.updatecolordic)
         #    Tk.Label(c_win,textvariable = self.nearest[0]).grid(row=math.floor(idx/3)+1,column = 5)
         #c_win_svar[0].set(str(self.nearest[0]))
         #print(str(self.nearest))
+        
+
         for i,item in enumerate(self.colors.get('red')):
-            cal_RGB[i].set(item)
+            self.cal_var[i].set(item)#cal_RGB[i].set(item)
             
         print("HERE")
         Btn_Quit = Tk.Button(c_win, text="Quit", command=c_win.destroy)
         Btn_Quit.grid(row=10,column=2)
 
-    def getValue(self,event):
-        print(event)
+    def SetValue(self,event):
+        for i in range(3):
+            self.colors.get('red')[i]=self.cal_var[i].get()
+        print(self.colors.get('red'))
+
+        for (i, (name, rgb)) in enumerate(self.colors.items()):
+	        # update the L*a*b* array and the color names list
+            self.lab[i] = rgb
+    
     def Solve(self):
         self.steplist = kc.solve(self.cube.kociemba()).split()
         print(self.steplist)
