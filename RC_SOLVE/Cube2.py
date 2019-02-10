@@ -63,7 +63,11 @@ class Cube(object):
                 for i in range(9):
                     self.cube.append(face)
         
-       
+    
+    def set(self,cdef):
+        """Check String is Valid and Set"""
+        self.cube = cdef
+
     def Turn(self,Type):
         tCube=[x for x in self.cube]
         CW = True

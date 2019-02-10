@@ -18,6 +18,8 @@ class CubeGUI:
         #self.config= Tk.Tk()
         #self.c_win = None
         self.cube = Cube
+        self.cubestring = list("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
+        Cube.set(self.cubestring)
         self.video_source = video_source
         self.steplist = []
         self.calibration_RGB = []
@@ -45,24 +47,26 @@ class CubeGUI:
         self.cBk = []
         self.cRi = []
         self.cLe = []
-        self.cal_var = []#[[Tk.IntVar()]*18]
+        self.cal_var = []
+        self.cubits = [None]*9
+        self.cubits_mean=[None]*9
+        #self.cur_var = []
         for i in range(18):
             self.cal_var.append(Tk.IntVar())
+            #self.cur_var.append(0)
         self.detect_colour = True
         #self.nearest = [Tk.StringVar()]*9
       
         self.refPt = []
 
         self.Face_Rectangles = []
-        self.start = (30,30)
+        self.start = (20,30)
         self.size = 50
-        self.space = 40
-        for j in range(3):
-            for i in range(3):
+        self.space = 50
+        for i in range(3):
+            for j in range(3):
                 self.Face_Rectangles.append([(self.start[0]+i*self.size+i*self.space,self.start[1]+j*self.size+j*self.space),\
                                        (self.start[0]+i*self.size+i*self.space+self.size,self.start[1]+j*self.size+j*self.space+self.size)])
-
-
 
         self.colors = OrderedDict({
 			        "red": [230, 80, 60],
@@ -72,13 +76,13 @@ class CubeGUI:
 			        "white":[200,200,200],
 			        "yellow":[250,250,100]})
 
-        self.lab = np.zeros((len(self.colors), 1, 3), dtype="uint8")
+        self.rgb = np.zeros((len(self.colors), 1, 3), dtype="uint8")
         self.colorNames = []
 
         # loop over the colors dictionary
-        for (i, (name, rgb)) in enumerate(self.colors.items()):
+        for (i, (name, val)) in enumerate(self.colors.items()):
 	        # update the L*a*b* array and the color names list
-            self.lab[i] = rgb
+            self.rgb[i] = val
             self.colorNames.append(name)
 
 
@@ -92,8 +96,9 @@ class CubeGUI:
                 self.cLe.append(self.canvas.create_rectangle(self.cLe_xi[i],self.cLe_yi[j],self.cLe_xi[i]+self.sz,self.cLe_yi[j]+self.sz,fill='orange'))                                                                                           
                 
         self.faces = {'Up':self.cUp,'Dn':self.cDn,'Ri':self.cRi,'Le':self.cLe,'Ft':self.cFt,'Bk':self.cBk}                
-                
-        
+        self.console = Tk.Text(self.window,height = 10,width =45)
+        self.console.pack(anchor = 'e')
+       
 
         self.next = Tk.Button(text ="Next", command = self.Next)
         self.next.pack()
@@ -104,12 +109,15 @@ class CubeGUI:
         self.solve = Tk.Button(text ="Solve", command = self.Solve)
         self.solve.pack()
 
+        self.map_cface = Tk.Button(text ="Map", command = self.map_to_face)
+        self.map_cface.pack(anchor = 'ne')
+
         self.lbl_sol = Tk.Label(text = "Solution")
         self.lbl_sol.pack()
 
         self.step = 0
         self.face_colours = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
-        
+        self.colours_face = {"white":('Up',(0,9)),'yellow':('Down',(27,36)),'blue':('Back',(45,54)),'green':("Front",(18,27)),'red':("Right",(9,18)),'orange':("L",(36,45))}
         
         self.vid = MyVideoCapture(video_source)
         
@@ -141,26 +149,6 @@ class CubeGUI:
         #URFDLB
         for i , face in enumerate("URFDLB"):
             Tk.Label(c_win,text = self.face_colours[face]+" ("+face+")").grid(row = i+1,column=0,sticky="ns")
-        #lbl_fU = Tk.Label(c_win,text="Up (W)")
-        #lbl_fU.grid(row=1,column=0,sticky='ns')
-
-        #lbl_fR = Tk.Label(c_win,text="Right (W)")
-        #lbl_fR.grid(row=1,column=0,sticky='ns')
-
-        #lbl_fU = Tk.Label(c_win,text="Up (W)")
-        #lbl_fU.grid(row=1,column=0,sticky='ns')
-
-        #lbl_fU = Tk.Label(c_win,text="Up (W)")
-        #lbl_fU.grid(row=1,column=0,sticky='ns')
-
-        #lbl_fU = Tk.Label(c_win,text="Up (W)")
-        #lbl_fU.grid(row=1,column=0,sticky='ns')
-
-        #lbl_fU = Tk.Label(c_win,text="Up (W)")
-        #lbl_fU.grid(row=1,column=0,sticky='ns')
-
-        #lbl_fU = Tk.Label(c_win,text="Up (W)")
-        #lbl_fU.grid(row=1,column=0,sticky='ns')
         
         
         for i in range(18):
@@ -169,28 +157,52 @@ class CubeGUI:
         for idx,item in enumerate(cal_RGB):
             item.grid(row=math.floor(idx/3)+1,column = idx%3+1)
             item.bind("<ButtonRelease-1>",self.SetValue)
-            #item.bind("<ButtonRelease-1>", self.updatecolordic)
-        #    Tk.Label(c_win,textvariable = self.nearest[0]).grid(row=math.floor(idx/3)+1,column = 5)
-        #c_win_svar[0].set(str(self.nearest[0]))
-        #print(str(self.nearest))
         
 
+        for i,item in enumerate(self.colors.get('white')):
+            self.cal_var[i+0].set(item)
         for i,item in enumerate(self.colors.get('red')):
-            self.cal_var[i].set(item)#cal_RGB[i].set(item)
+            self.cal_var[i+3].set(item)
+        for i,item in enumerate(self.colors.get('green')):
+            self.cal_var[i+6].set(item)
+        for i,item in enumerate(self.colors.get('yellow')):
+            self.cal_var[i+9].set(item)
+        for i,item in enumerate(self.colors.get('orange')):
+            self.cal_var[i+12].set(item)
+        for i,item in enumerate(self.colors.get('blue')):
+            self.cal_var[i+15].set(item)
             
-        print("HERE")
         Btn_Quit = Tk.Button(c_win, text="Quit", command=c_win.destroy)
         Btn_Quit.grid(row=10,column=2)
 
     def SetValue(self,event):
         for i in range(3):
-            self.colors.get('red')[i]=self.cal_var[i].get()
-        print(self.colors.get('red'))
+            self.colors.get('white')[i]=self.cal_var[i].get()
+        for i in range(3):
+            self.colors.get('red')[i]=self.cal_var[i+3].get()
+        for i in range(3):
+            self.colors.get('green')[i]=self.cal_var[i+6].get()
+        for i in range(3):
+            self.colors.get('yellow')[i]=self.cal_var[i+9].get()
+        for i in range(3):
+            self.colors.get('orange')[i]=self.cal_var[i+12].get()
+        for i in range(3):
+            self.colors.get('blue')[i]=self.cal_var[i+15].get()
 
-        for (i, (name, rgb)) in enumerate(self.colors.items()):
+        for (i, (name, val)) in enumerate(self.colors.items()):
 	        # update the L*a*b* array and the color names list
-            self.lab[i] = rgb
-    
+            self.rgb[i] = val
+    def map_to_face(self):
+        temp = []
+        #print(self.colours_face[self.cubits[4]][1][0]:self.colours_face[self.cubits[4]][1][1]])
+        print(self.cubestring)
+        for item in self.cubits:
+            temp.append(self.colours_face[item][0][0])
+        self.cubestring[self.colours_face[self.cubits[4]][1][0]:self.colours_face[self.cubits[4]][1][1]] =\
+        temp[:]
+        print(self.cubestring)
+        #print(temp)
+        self.map_face()
     def Solve(self):
         self.steplist = kc.solve(self.cube.kociemba()).split()
         print(self.steplist)
@@ -229,12 +241,9 @@ class CubeGUI:
 
 
         mask = np.zeros(frame.shape[:2], dtype="uint8")
-        #c = np.array([[200,150],[260,210]])
-        #cv2.drawContours(mask, c, -1, 255, -1)
         test = np.copy(frame)
 
         for item in self.Face_Rectangles:
-		#cv2.rectangle(frame,(200,150),(260,210),(0,255,0),3)
             cv2.rectangle(frame,item[0],item[1],(0,255,0),3)
 
         if self.detect_colour:
@@ -245,23 +254,34 @@ class CubeGUI:
                 b,g,r,_=np.uint8(cv2.mean(mask))
                 mean = cv2.mean(mask)
 
-                for (i, row) in enumerate(self.lab):
-                #print(i,row)
-                # compute the distance between the current L*a*b*
-                # color value and the mean of the image
-                #    pass
-                #print(row[0])
+                for (i, row) in enumerate(self.rgb):
+    
                     d = dist.euclidean(row[0], mean[:3])
-                #print(d)
-                # if the distance is smaller than the current distance,
-                # then update the bookkeeping variable
+
                     if d < minDist[0]:
                         minDist = (d, i)
 
-                
-                cv2.putText(frame,self.colorNames[minDist[1]],(item[0][0],item[0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
-                 
-         
+                self.cubits[number] = self.colorNames[minDist[1]]
+                self.cubits_mean[number]=[r,g,b]
+                #cv2.putText(frame,str(number)+':'+self.colorNames[minDist[1]][:3],(item[0][0],item[0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        
+        console_text =''
+        for number, item in enumerate(self.cubits_mean):
+            console_text += 'Cube('+str(number)  +") {:<7}: - R:{:03d} - G:{:03d} - B:{:03d}\n".format(self.cubits[number], item[2],item[1],item[1])
+            #cv2.putText(frame,str(number)+':'+self.cubits[number],(self.Face_Rectangles[number][0][0],self.Face_Rectangles[number][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+            #array index all fucked
+        cv2.putText(frame,'0',(self.Face_Rectangles[0][0][0]+int(self.size/2)-10,self.Face_Rectangles[0][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'1',(self.Face_Rectangles[3][0][0]+int(self.size/2)-10,self.Face_Rectangles[3][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'2',(self.Face_Rectangles[6][0][0]+int(self.size/2)-10,self.Face_Rectangles[6][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'3',(self.Face_Rectangles[1][0][0]+int(self.size/2)-10,self.Face_Rectangles[1][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'4',(self.Face_Rectangles[4][0][0]+int(self.size/2)-10,self.Face_Rectangles[4][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'5',(self.Face_Rectangles[7][0][0]+int(self.size/2)-10,self.Face_Rectangles[7][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'6',(self.Face_Rectangles[2][0][0]+int(self.size/2)-10,self.Face_Rectangles[2][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'7',(self.Face_Rectangles[5][0][0]+int(self.size/2)-10,self.Face_Rectangles[5][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(frame,'8',(self.Face_Rectangles[8][0][0]+int(self.size/2)-10,self.Face_Rectangles[8][0][1]+int(self.size/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
+        self.console.delete('1.0', Tk.END)
+        self.console.insert('1.0',console_text)#str(b)+','+str(g)+','+str(r)+'\n') 
+        self.console.insert(Tk.END,'Face Detected:'+self.colours_face[self.cubits[4]][0]) 
                 # return the name of the color with the smallest distance
                 #print(self.colorNames[minDist[1]])
             
