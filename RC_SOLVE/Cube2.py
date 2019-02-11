@@ -36,6 +36,7 @@ class Cube(object):
         print("#|--------|30,31,32|--------|--------|")  
         print("#|--------|33,34,35|--------|--------| ")
         self.cube = []
+        self.kociemba=''
         #self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         #self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
         #self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
@@ -86,16 +87,18 @@ class Cube(object):
         definition = [x for x in self.cube]
         return(definition)
 
-    def kociemba(self):
+    def ret_kociemba(self):
         """Return kociemba Equivalent of Colour Map. Sinlge String denoting URFDLB
             U1, U2, U3, U4, U5, U6, U7, U8, U9,
             R1, R2, R3, R4, R5, R6, R7, R8, R9,
             F1, F2, F3, F4, F5, F6, F7, F8, F9, 
             D1, D2, D3, D4, D5, D6, D7, D8, D9, 
             L1, L2, L3, L4, L5, L6, L7, L8, L9, 
-            B1, B2, B3, B4, B5, B6, B7, B8, B9."""       
+            B1, B2, B3, B4, B5, B6, B7, B8, B9."""
+        self.kociemba=''
         self.kociemba=''.join(map(str, self.cube))
-        return(self.kociemba)
+        
+        return(''.join(map(str, self.cube)))
 
 
 
