@@ -1,11 +1,7 @@
-
-import numpy as np
-from copy import deepcopy as dc
 #http://studentnet.cs.manchester.ac.uk/resources/library/3rd-year-projects/2015/aryeh.grosskopf.pdf
 #http://lghttp.38568.nexcesscdn.net/8013252/pdf/uploads/general_content/Rubiks_cube_3x3_solution-en.pdf
 #https://github.com/hkociemba/RubiksCube-TwophaseSolver
 #https://pypi.org/project/kociemba/
- 
 
 class Cube(object):
     """
@@ -34,12 +30,8 @@ class Cube(object):
         print("#-------------------------------------")
         print("#|--------|27,28,29|--------|--------|")  
         print("#|--------|30,31,32|--------|--------|")  
-        print("#|--------|33,34,35|--------|--------| ")
-        self.cube = []
-        self.kociemba=''
-        #self.coldic = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
-        #self.kocdic = {"U":'W',"D":'Y',"B":'B',"F":'G',"R":'R',"L":'O'}
-        #self.kocdic2 = {"U":'U',"D":'D',"B":'B',"F":'F',"R":'R',"L":'L'}
+        print("#|--------|33,34,35|--------|--------|")
+        #self.kociemba=''
         self.TurnList = {'R':((2,20),(5,23),(8,26),(20,29),
                               (23,32),(26,35),(29,51),(32,48),
                               (35,45),(45,8),(48,5),(51,2),
@@ -55,19 +47,46 @@ class Cube(object):
                          'L':((18,0),(0,53),(53,27),(27,18),
                               (21,3),(3,50),(50,30),(30,21),
                               (24,6),(6,47),(47,33),(33,24),
-                              (36,42),(37,39),(38,36),(39,43),(41,37),(42,44),(43,41),(44,38))}
+                              (36,42),(37,39),(38,36),(39,43),(41,37),(42,44),(43,41),(44,38)),
+                         'B':((0,11),(11,35),(35,42),(42,0),
+                              (1,14),(14,34),(34,39),(39,1),
+                              (2,17),(17,33),(33,36),(36,2),
+                              (45,51),(46,48),(47,45),(51,53),(52,50),(53,47),(48,52),(50,46)),
+                         'D':((24,42),(42,51),(51,15),(15,24),
+                              (25,43),(43,52),(52,16),(16,25),
+                              (26,44),(44,53),(53,17),(17,26),
+                              (29,27),(32,28),(35,29),(27,33),(30,34),(33,35),(28,30),(34,32))}
+                              
                 
         if CubeDef:
             self.cube = CubeDef
-        else:        
-            for face in "URFDLB":
-                for i in range(9):
-                    self.cube.append(face)
-        
+        else: 
+            self.cube = list("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
     
-    def set(self,cdef):
-        """Check String is Valid and Set"""
-        self.cube = cdef
+    @property
+    def cube(self):
+        return self.__cube
+
+    @cube.setter
+    def cube(self,cube):
+        #"URFDLB"
+
+        if (len(cube)==54) and (cube[4]=="U") and (cube[13] =="R") and (cube[22]=="F") and (cube[31]=="D") and (cube[40] == "L") and (cube[49]=="B"):
+            self.__cube = cube
+        else:
+            print("Cant Set invalid cube definition")
+            self.__cube = list("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
+
+    def Face_Counter(self):
+        fcounts = []
+        ok = "Valid"
+        for face in "URFDLB":
+            fcounts.append(self.cube.count(face))
+        for cnt in fcounts:
+            if cnt!=9:
+                ok = "Not Valid"
+        fcounts.append(ok)
+        return fcounts
 
     def Turn(self,Type):
         tCube=[x for x in self.cube]
@@ -87,7 +106,7 @@ class Cube(object):
         definition = [x for x in self.cube]
         return(definition)
 
-    def ret_kociemba(self):
+    def get_kociemba(self):
         """Return kociemba Equivalent of Colour Map. Sinlge String denoting URFDLB
             U1, U2, U3, U4, U5, U6, U7, U8, U9,
             R1, R2, R3, R4, R5, R6, R7, R8, R9,
@@ -95,8 +114,8 @@ class Cube(object):
             D1, D2, D3, D4, D5, D6, D7, D8, D9, 
             L1, L2, L3, L4, L5, L6, L7, L8, L9, 
             B1, B2, B3, B4, B5, B6, B7, B8, B9."""
-        self.kociemba=''
-        self.kociemba=''.join(map(str, self.cube))
+        #self.kociemba=''
+        #self.kociemba=''.join(map(str, self.cube))
         
         return(''.join(map(str, self.cube)))
 

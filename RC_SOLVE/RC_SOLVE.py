@@ -3,7 +3,6 @@ import Cube2
 import math
 import tkinter as Tk
 import kociemba as kc
-#import threading
 import imutils as imu
 import PIL.Image, PIL.ImageTk
 import cv2
@@ -16,8 +15,8 @@ class CubeGUI:
     def __init__(self,Cube,video_source,**kwargs):           
         self.window = Tk.Tk()
         self.cube = Cube
-        self.cubestring = list("UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
-        Cube.set(self.cubestring)
+        #self.cube.cube = list("UUUURUUUURRRURRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
+        self.cubestring = self.cube.cube
         self.video_source = video_source
         self.steplist = []
         self.calibration_RGB = []
@@ -26,22 +25,24 @@ class CubeGUI:
         self.canvas.grid(row=0,column=0,columnspan=10)
         self.cmd_box = Tk.Frame(self.window,width = 500,height = 500,bd=1)#, relief=Tk.SUNKEN)
         self.cmd_box.place(x=0,y=400)
-        #self.xxx=Tk.Frame(self.window,width = 800,height = 400,bd=1, relief=Tk.SUNKEN)       
-        #self.xxx.pack(anchor='sw')
-        #self.xxx.pack_propagate(0)
-        #self.xxx.columnconfigure(8,minsize= 100)
         self.GUI_Params_Cube = (100,50,25) #Starting X Position
         self.CV_RParam = [20,30,50,50] #Rectangle Size
         self.cal_var = []
         self.cubits = [None]*9
         self.cubits_mean=[None]*9
-        #self.cur_var = []
+        
         for i in range(18):
             self.cal_var.append(Tk.IntVar())
+        
         self.detect_colour = True     
         self.refPt = []
         self.Face_Rectangles = self.CV_rectangles(self.CV_RParam)
-        
+        f= open('cubecfg.txt',"r")
+        lines = f.read().splitlines()
+        f.close()
+        last_line = lines[-1]
+        colcfg = last_line.split(',')
+        print(colcfg)
         self.colors = OrderedDict({
 			        "red": [230, 80, 60],
 			        "green": [30, 200, 120],
@@ -49,6 +50,17 @@ class CubeGUI:
 			        "orange":[255,165,40],
 			        "white":[200,200,200],
 			        "yellow":[250,250,100]})
+        if len(last_line)>=18:
+            try:
+                self.colors['red'] = colcfg[:3]
+                self.colors['green'] = colcfg[3:6]
+                self.colors['blue'] = colcfg[6:9]
+                self.colors['orange'] = colcfg[9:12]
+                self.colors['white'] = colcfg[12:15]
+                self.colors['yellow'] = colcfg[15:18]
+            except:
+                print("Failed to import config")
+
         self.ocol={'red':('green','yellow'),'green':('blue','red'),'blue':('orange','green'),'orange':('white','blue'),'white':('yellow','orange'),'yellow':('red','white')}
         self.face_colours = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         self.colours_face = {"white":('Up',(0,9)),'yellow':('Down',(27,36)),'blue':('Back',(45,54)),'green':("Front",(18,27)),'red':("Right",(9,18)),'orange':("L",(36,45))}
@@ -61,13 +73,16 @@ class CubeGUI:
             self.rgb[i] = val
             self.colorNames.append(name)
        
+        self.window.protocol("WM_DELETE_WINDOW", self._delete_window)
+        #self.window.bind("<Destroy>", _destroy)
+            
         self.faces =  self.GUI_Cube(self.canvas,self.GUI_Params_Cube)              
         for item in self.faces:
             #Bind left and right mouse clicks to CubeGUIs
             self.canvas.tag_bind(item,'<Button-1>', self.Face_Cycle_L)
             self.canvas.tag_bind(item,'<Button-3>', self.Face_Cycle_R)
                     
-        self.console = Tk.Text(self.window,height = 10,width =45)
+        self.console = Tk.Text(self.window,height = 10,width =50)
         self.console.place(x=500,y=400)       
         
         self.next = Tk.Button(self.cmd_box,text ="Next", command = self.Next)
@@ -85,9 +100,45 @@ class CubeGUI:
         self.R=Tk.Button(self.cmd_box,text ="R", command=lambda: (self.cube.Turn("R"),self.map_face()))
         self.R.grid(row=0,column=2,padx=10,sticky="ew")
 
-        self.lbl_sol = Tk.Label(self.cmd_box,text = "Solution")
-        self.lbl_sol.grid(row=2,column=0,sticky="ew",columnspan=10)
+        self.Rd=Tk.Button(self.cmd_box,text ="R'", command=lambda: (self.cube.Turn("R'"),self.map_face()))
+        self.Rd.grid(row=0,column=3,padx=10,sticky="ew")
 
+        self.U=Tk.Button(self.cmd_box,text ="U", command=lambda: (self.cube.Turn("U"),self.map_face()))
+        self.U.grid(row=1,column=2,padx=10,sticky="ew")
+
+        self.Ud=Tk.Button(self.cmd_box,text ="U'", command=lambda: (self.cube.Turn("U'"),self.map_face()))
+        self.Ud.grid(row=1,column=3,padx=10,sticky="ew")
+
+        self.F=Tk.Button(self.cmd_box,text ="F", command=lambda: (self.cube.Turn("F"),self.map_face()))
+        self.F.grid(row=2,column=2,padx=10,sticky="ew")
+
+        self.Fd=Tk.Button(self.cmd_box,text ="F'", command=lambda: (self.cube.Turn("F'"),self.map_face()))
+        self.Fd.grid(row=2,column=3,padx=10,sticky="ew")
+
+        self.L=Tk.Button(self.cmd_box,text ="L", command=lambda: (self.cube.Turn("L"),self.map_face()))
+        self.L.grid(row=3,column=2,padx=10,sticky="ew")
+
+        self.Ld=Tk.Button(self.cmd_box,text ="L'", command=lambda: (self.cube.Turn("L'"),self.map_face()))
+        self.Ld.grid(row=3,column=3,padx=10,sticky="ew")
+
+        self.B=Tk.Button(self.cmd_box,text ="B", command=lambda: (self.cube.Turn("B"),self.map_face()))
+        self.B.grid(row=4,column=2,padx=10,sticky="ew")
+
+        self.Bd=Tk.Button(self.cmd_box,text ="B'", command=lambda: (self.cube.Turn("B'"),self.map_face()))
+        self.Bd.grid(row=4,column=3,padx=10,sticky="ew")
+
+        self.D=Tk.Button(self.cmd_box,text ="D", command=lambda: (self.cube.Turn("D"),self.map_face()))
+        self.D.grid(row=4,column=2,padx=10,sticky="ew")
+
+        self.Dd=Tk.Button(self.cmd_box,text ="D'", command=lambda: (self.cube.Turn("D'"),self.map_face()))
+        self.Dd.grid(row=4,column=3,padx=10,sticky="ew")
+
+        self.lbl_sol = Tk.Label(self.cmd_box,text = "Solution")
+        self.lbl_sol.grid(row=5,column=0,sticky="ew",columnspan=10)
+
+        self.lbl_fcnt = Tk.Label(self.cmd_box,text = "Face Counts")
+        self.lbl_fcnt.grid(row=6,column=0,sticky="ew",columnspan=10,rowspan =2)
+        
         self.step = 0
 
         self.vid = MyVideoCapture(video_source)
@@ -149,7 +200,7 @@ class CubeGUI:
         if u not in [4,13,22,31,40,49]:
             v=self.colours_face[self.ocol[self.canvas.itemcget(t,"fill")][1]][0][0]
             self.cubestring[u]=v
-            Cube.set(self.cubestring)
+            self.cube.cube = self.cubestring#Cube.set(self.cubestring)
             self.map_face()
         else:
             print("Cant Change Center Cubit")
@@ -161,7 +212,7 @@ class CubeGUI:
         if u not in [4,13,22,31,40,49]:
             v=self.colours_face[self.ocol[self.canvas.itemcget(t,"fill")][0]][0][0]
             self.cubestring[int(u)]=v
-            Cube.set(self.cubestring)
+            self.cube.cube = self.cubestring#Cube.set(self.cubestring)
             self.map_face()
         else:
             print("Cant Change Center Cubit")
@@ -221,24 +272,45 @@ class CubeGUI:
             self.colors.get('orange')[i]=self.cal_var[i+12].get()
         for i in range(3):
             self.colors.get('blue')[i]=self.cal_var[i+15].get()
-
+        f= open('cubecfg.txt',"a")
         for (i, (name, val)) in enumerate(self.colors.items()):
             self.rgb[i] = val
+            
+            f.write(','.join(map(str, val))+",")
+            
+        #f= open('cubecfg.txt',"a")
+        #for item in self.colors.items():
+        #    f.write(','.join(map(str, item)))
+            
+        f.write("\n")
+        f.close
 
     def map_to_face(self):
         temp = []
         for item in self.cubits:
-            temp.append(self.colours_face[item][0][0])
-        self.cubestring[self.colours_face[self.cubits[4]][1][0]:self.colours_face[self.cubits[4]][1][1]] =\
+            temp.append(self.colours_face[item[0]][0][0])
+        self.cubestring[self.colours_face[self.cubits[4][0]][1][0]:self.colours_face[self.cubits[4][0]][1][1]] =\
         temp[:]
         print(self.cubestring)
         self.map_face()
 
     def Solve(self):
-        self.steplist = kc.solve(self.cube.ret_kociemba()).split()
-        print(self.steplist)
-        self.lbl_sol.config(text = ''.join(self.steplist))
-  
+        """Solve the Cube using KC library
+        Remove any "2" and replace with doulbe steip for Cube Library"""
+        try:
+            self.steplist = kc.solve(self.cube.get_kociemba()).split()
+        except ValueError as e:
+            print(e)
+            self.steplist = []
+            self.lbl_sol.config(text = "Invalid Cube. Cannot Solve")
+        if len(self.steplist) >0:
+            for i,step in enumerate(self.steplist):
+                if len(step)==2:               
+                    if step[1] == '2':
+                        self.steplist[i]=self.steplist[i][0]
+                        self.steplist.insert(i,self.steplist[i])       
+            self.lbl_sol.config(text = ''.join(self.steplist))
+        self.step=0
     def Next(self):
         if self.step<len(self.steplist):                       
             self.cube.Turn(self.steplist[self.step])         
@@ -293,14 +365,14 @@ class CubeGUI:
                     if d < minDist[0]:
                         minDist = (d, i)
 
-                self.cubits[number] = self.colorNames[minDist[1]]
+                self.cubits[number] = (self.colorNames[minDist[1]],int(minDist[0]))
                 self.cubits_mean[number]=[r,g,b]
                        
         console_text =''
         #Generate Console Text
         #Average Colours and Closest Colour match for face cubits
         for number, item in enumerate(self.cubits_mean):
-            console_text += 'Cube('+str(number)  +") {:<7}: - R:{:03d} - G:{:03d} - B:{:03d}\n".format(self.cubits[number], item[2],item[1],item[1])
+            console_text += 'Cube('+str(number).strip() +") {:<6}(d:{:03d})| R:{:03d} - G:{:03d} - B:{:03d}\n".format(*self.cubits[number], item[2],item[1],item[1])
 
         cv2.putText(frame,'0',(self.Face_Rectangles[0][0][0]+int(self.CV_RParam[3]/2)-10,self.Face_Rectangles[0][0][1]+int(self.CV_RParam[3]/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
         cv2.putText(frame,'1',(self.Face_Rectangles[3][0][0]+int(self.CV_RParam[3]/2)-10,self.Face_Rectangles[3][0][1]+int(self.CV_RParam[3]/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
@@ -312,8 +384,8 @@ class CubeGUI:
         cv2.putText(frame,'7',(self.Face_Rectangles[5][0][0]+int(self.CV_RParam[3]/2)-10,self.Face_Rectangles[5][0][1]+int(self.CV_RParam[3]/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
         cv2.putText(frame,'8',(self.Face_Rectangles[8][0][0]+int(self.CV_RParam[3]/2)-10,self.Face_Rectangles[8][0][1]+int(self.CV_RParam[3]/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
         self.console.delete('1.0', Tk.END)
-        self.console.insert('1.0',console_text)#str(b)+','+str(g)+','+str(r)+'\n') 
-        self.console.insert(Tk.END,'Face Detected:'+self.colours_face[self.cubits[4]][0]) 
+        self.console.insert('1.0',console_text)
+        self.console.insert(Tk.END,'Face Detected:'+self.colours_face[self.cubits[4][0]][0]) 
                 # return the name of the color with the smallest distance
                 #print(self.colorNames[minDist[1]])
             
@@ -322,10 +394,19 @@ class CubeGUI:
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
             self.canvas.create_image(500, self.GUI_Params_Cube[1], image = self.photo, anchor = Tk.NW)
+
+        face_cnt_str = 'Number of Cubits - Up(W):{:0>2d} | Ri(R):{:0>2d} |Fr(G):{:0>2d} |Do(Y):{:0>2d} |Le(O):{:0>2d} |Ba(B):{:0>2d}. \n Number of Cubits {}'.format(*self.cube.Face_Counter())
+        self.lbl_fcnt.config(text=face_cnt_str)
  
         self.window.after(self.delay, self.update)    
-           
-        #self.window.after(self.delay, self.update)
+                
+    def _delete_window(self):
+        print("closing")
+        try:
+            del(self.vid)
+            self.window.destroy()
+        except:
+            pass
             
 class MyVideoCapture:
     def __init__(self, video_source=0):
@@ -342,7 +423,6 @@ class MyVideoCapture:
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
-        self.window.mainloop()
 
     def get_frame(self):
         if self.vid.isOpened():
@@ -355,18 +435,8 @@ class MyVideoCapture:
         else:
             return (ret, None)
 
+
 Cube = Cube2.Cube()
-Cube.Turn("R")
-#Cube.Turn("L")
-Cube.Turn("U")
-Cube.Turn("F'")
-Cube.Turn("R'")
-Cube.Turn("U")
-Cube.Turn("L")
-#window = Tk.Tk()
-#config = Tk.Tk()
-#window.title("Rubiks Cube Solver")
 CubeG = CubeGUI(Cube,0)
 
-#window.mainloop()
 
