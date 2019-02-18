@@ -32,6 +32,7 @@ class Cube(object):
         print("#|--------|30,31,32|--------|--------|")  
         print("#|--------|33,34,35|--------|--------|")
         #self.kociemba=''
+        #Turn List, Structure is Cubit from To. Reversed for dash operations
         self.TurnList = {'R':((2,20),(5,23),(8,26),(20,29),
                               (23,32),(26,35),(29,51),(32,48),
                               (35,45),(45,8),(48,5),(51,2),

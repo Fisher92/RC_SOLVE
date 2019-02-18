@@ -7,6 +7,7 @@ import imutils as imu
 import PIL.Image, PIL.ImageTk
 import cv2
 import numpy as np
+import pickle
 from imutils.video import VideoStream
 from scipy.spatial import distance as dist
 from collections import OrderedDict
@@ -15,8 +16,7 @@ class CubeGUI:
     def __init__(self,Cube,video_source,**kwargs):           
         self.window = Tk.Tk()
         self.cube = Cube
-        #self.cube.cube = list("UUUURUUUURRRURRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB")
-        self.cubestring = self.cube.cube
+        #self.cubestring = self.cube.cube
         self.video_source = video_source
         self.steplist = []
         self.calibration_RGB = []
@@ -26,7 +26,7 @@ class CubeGUI:
         self.cmd_box = Tk.Frame(self.window,width = 500,height = 500,bd=1)#, relief=Tk.SUNKEN)
         self.cmd_box.place(x=0,y=400)
         self.GUI_Params_Cube = (100,50,25) #Starting X Position
-        self.CV_RParam = [20,30,50,50] #Rectangle Size
+        self.CV_RParam = [30,10,45,65] #Rectangle Size
         self.cal_var = []
         self.cubits = [None]*9
         self.cubits_mean=[None]*9
@@ -37,41 +37,38 @@ class CubeGUI:
         self.detect_colour = True     
         self.refPt = []
         self.Face_Rectangles = self.CV_rectangles(self.CV_RParam)
-        f= open('cubecfg.txt',"r")
-        lines = f.read().splitlines()
-        f.close()
-        last_line = lines[-1]
-        colcfg = last_line.split(',')
-        print(colcfg)
-        self.colors = OrderedDict({
+
+        try:
+            self.cubestring = pickle.load(open("cubestring.p","rb"))
+            if self.cubestring:
+                self.cube.cube = self.cubestring
+        except (OSError, IOError) as e:
+            print(e)
+            self.cubestring = self.cube.cube
+            pickle.dump(self.cubestring,open("cubestring.p","wb"))
+        try:
+            self.colours = pickle.load(open("colours.p","rb"))            
+        except (OSError, IOError) as e:
+            print(e)
+            self.colours = OrderedDict({
 			        "red": [230, 80, 60],
 			        "green": [30, 200, 120],
 			        "blue": [0, 0, 255],
 			        "orange":[255,165,40],
 			        "white":[200,200,200],
 			        "yellow":[250,250,100]})
-        if len(last_line)>=18:
-            try:
-                self.colors['red'] = colcfg[:3]
-                self.colors['green'] = colcfg[3:6]
-                self.colors['blue'] = colcfg[6:9]
-                self.colors['orange'] = colcfg[9:12]
-                self.colors['white'] = colcfg[12:15]
-                self.colors['yellow'] = colcfg[15:18]
-            except:
-                print("Failed to import config")
+            pickle.dump(self.colours,open("colours.p","wb"))
 
         self.ocol={'red':('green','yellow'),'green':('blue','red'),'blue':('orange','green'),'orange':('white','blue'),'white':('yellow','orange'),'yellow':('red','white')}
         self.face_colours = {"U":'white',"D":'yellow',"B":'blue',"F":'green',"R":'red',"L":'orange'}
         self.colours_face = {"white":('Up',(0,9)),'yellow':('Down',(27,36)),'blue':('Back',(45,54)),'green':("Front",(18,27)),'red':("Right",(9,18)),'orange':("L",(36,45))}
 
-        self.rgb = np.zeros((len(self.colors), 1, 3), dtype="uint8")
-        self.colorNames = []
-
+        self.rgb = np.zeros((len(self.colours), 1, 3), dtype="uint8")
+        self.colourNames = []
         
-        for (i, (name, val)) in enumerate(self.colors.items()):
+        for (i, (name, val)) in enumerate(self.colours.items()):
             self.rgb[i] = val
-            self.colorNames.append(name)
+            self.colourNames.append(name)
        
         self.window.protocol("WM_DELETE_WINDOW", self._delete_window)
         #self.window.bind("<Destroy>", _destroy)
@@ -83,8 +80,14 @@ class CubeGUI:
             self.canvas.tag_bind(item,'<Button-3>', self.Face_Cycle_R)
                     
         self.console = Tk.Text(self.window,height = 10,width =50)
-        self.console.place(x=500,y=400)       
+        self.console.place(x=500,y=400)
         
+        self.cs_lbl=Tk.Label(self.window,text = "Cube String")
+        self.cs_lbl.place(x=500,y=580)
+        
+        self.cs_txt=Tk.Text(self.window,height =1, width=40)
+        self.cs_txt.place(x=590,y=580)
+
         self.next = Tk.Button(self.cmd_box,text ="Next", command = self.Next)
         self.next.grid(row=0,column=0,padx=10,sticky="ew")
 
@@ -128,16 +131,16 @@ class CubeGUI:
         self.Bd.grid(row=4,column=3,padx=10,sticky="ew")
 
         self.D=Tk.Button(self.cmd_box,text ="D", command=lambda: (self.cube.Turn("D"),self.map_face()))
-        self.D.grid(row=4,column=2,padx=10,sticky="ew")
+        self.D.grid(row=5,column=2,padx=10,sticky="ew")
 
         self.Dd=Tk.Button(self.cmd_box,text ="D'", command=lambda: (self.cube.Turn("D'"),self.map_face()))
-        self.Dd.grid(row=4,column=3,padx=10,sticky="ew")
+        self.Dd.grid(row=5,column=3,padx=10,sticky="ew")
 
         self.lbl_sol = Tk.Label(self.cmd_box,text = "Solution")
-        self.lbl_sol.grid(row=5,column=0,sticky="ew",columnspan=10)
+        self.lbl_sol.grid(row=6,column=0,sticky="ew",columnspan=10)
 
         self.lbl_fcnt = Tk.Label(self.cmd_box,text = "Face Counts")
-        self.lbl_fcnt.grid(row=6,column=0,sticky="ew",columnspan=10,rowspan =2)
+        self.lbl_fcnt.grid(row=7,column=0,sticky="ew",columnspan=10,rowspan =2)
         
         self.step = 0
 
@@ -238,52 +241,40 @@ class CubeGUI:
               
         for i in range(18):
             cal_RGB.append(Tk.Scale(c_win,from_=0,to=255,orient = "vertical",variable = self.cal_var[i]))
-            #c_win_svar.append(Tk.StringVar())
         for idx,item in enumerate(cal_RGB):
             item.grid(row=math.floor(idx/3)+1,column = idx%3+1)
             item.bind("<ButtonRelease-1>",self.SetValue)
         
-        for i,item in enumerate(self.colors.get('white')):
+        for i,item in enumerate(self.colours.get('white')):
             self.cal_var[i+0].set(item)
-        for i,item in enumerate(self.colors.get('red')):
+        for i,item in enumerate(self.colours.get('red')):
             self.cal_var[i+3].set(item)
-        for i,item in enumerate(self.colors.get('green')):
+        for i,item in enumerate(self.colours.get('green')):
             self.cal_var[i+6].set(item)
-        for i,item in enumerate(self.colors.get('yellow')):
+        for i,item in enumerate(self.colours.get('yellow')):
             self.cal_var[i+9].set(item)
-        for i,item in enumerate(self.colors.get('orange')):
+        for i,item in enumerate(self.colours.get('orange')):
             self.cal_var[i+12].set(item)
-        for i,item in enumerate(self.colors.get('blue')):
-            self.cal_var[i+15].set(item)
-            
-        Btn_Quit = Tk.Button(c_win, text="Quit", command=c_win.destroy)
-        Btn_Quit.grid(row=10,column=2)
+        for i,item in enumerate(self.colours.get('blue')):
+            self.cal_var[i+15].set(item)            
 
     def SetValue(self,event):
         for i in range(3):
-            self.colors.get('white')[i]=self.cal_var[i].get()
+            self.colours.get('white')[i]=self.cal_var[i].get()
         for i in range(3):
-            self.colors.get('red')[i]=self.cal_var[i+3].get()
+            self.colours.get('red')[i]=self.cal_var[i+3].get()
         for i in range(3):
-            self.colors.get('green')[i]=self.cal_var[i+6].get()
+            self.colours.get('green')[i]=self.cal_var[i+6].get()
         for i in range(3):
-            self.colors.get('yellow')[i]=self.cal_var[i+9].get()
+            self.colours.get('yellow')[i]=self.cal_var[i+9].get()
         for i in range(3):
-            self.colors.get('orange')[i]=self.cal_var[i+12].get()
+            self.colours.get('orange')[i]=self.cal_var[i+12].get()
         for i in range(3):
-            self.colors.get('blue')[i]=self.cal_var[i+15].get()
-        f= open('cubecfg.txt',"a")
-        for (i, (name, val)) in enumerate(self.colors.items()):
+            self.colours.get('blue')[i]=self.cal_var[i+15].get()
+        for (i, (name, val)) in enumerate(self.colours.items()):
             self.rgb[i] = val
             
-            f.write(','.join(map(str, val))+",")
-            
-        #f= open('cubecfg.txt',"a")
-        #for item in self.colors.items():
-        #    f.write(','.join(map(str, item)))
-            
-        f.write("\n")
-        f.close
+        
 
     def map_to_face(self):
         temp = []
@@ -295,8 +286,6 @@ class CubeGUI:
         self.map_face()
 
     def Solve(self):
-        """Solve the Cube using KC library
-        Remove any "2" and replace with doulbe steip for Cube Library"""
         try:
             self.steplist = kc.solve(self.cube.get_kociemba()).split()
         except ValueError as e:
@@ -314,10 +303,15 @@ class CubeGUI:
     def Next(self):
         if self.step<len(self.steplist):                       
             self.cube.Turn(self.steplist[self.step])         
-            print(self.step)
+            #print(self.step)
+            if self.step < (len(self.steplist)-1):
+                self.lbl_sol.config(text = ''.join(self.steplist)+" (Step {} of {}. Next {})".format(self.step+1,len(self.steplist),self.steplist[self.step+1]))
+            else:
+                self.lbl_sol.config(text = ''.join(self.steplist))
             self.step+=1
+            
         self.map_face()
-    
+        
     def map_face(self):
         """Map Cube Definition to GUI Cube"""
         #Array Order: U0,D1,R2,L3,F4,B5,
@@ -365,14 +359,14 @@ class CubeGUI:
                     if d < minDist[0]:
                         minDist = (d, i)
 
-                self.cubits[number] = (self.colorNames[minDist[1]],int(minDist[0]))
+                self.cubits[number] = (self.colourNames[minDist[1]],int(minDist[0]))
                 self.cubits_mean[number]=[r,g,b]
                        
         console_text =''
         #Generate Console Text
         #Average Colours and Closest Colour match for face cubits
         for number, item in enumerate(self.cubits_mean):
-            console_text += 'Cube('+str(number).strip() +") {:<6}(d:{:03d})| R:{:03d} - G:{:03d} - B:{:03d}\n".format(*self.cubits[number], item[2],item[1],item[1])
+            console_text += 'Cube('+str(number).strip() +") {:<6}(d:{:03d})| R:{:03d} - G:{:03d} - B:{:03d}\n".format(*self.cubits[number], item[2],item[1],item[0])
 
         cv2.putText(frame,'0',(self.Face_Rectangles[0][0][0]+int(self.CV_RParam[3]/2)-10,self.Face_Rectangles[0][0][1]+int(self.CV_RParam[3]/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
         cv2.putText(frame,'1',(self.Face_Rectangles[3][0][0]+int(self.CV_RParam[3]/2)-10,self.Face_Rectangles[3][0][1]+int(self.CV_RParam[3]/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(255,255,255),2,cv2.LINE_AA)
@@ -386,10 +380,10 @@ class CubeGUI:
         self.console.delete('1.0', Tk.END)
         self.console.insert('1.0',console_text)
         self.console.insert(Tk.END,'Face Detected:'+self.colours_face[self.cubits[4][0]][0]) 
-                # return the name of the color with the smallest distance
-                #print(self.colorNames[minDist[1]])
+                # return the name of the colour with the smallest distance
+                #print(self.colourNames[minDist[1]])
             
-                #self.nearest[number].set(self.colorNames[minDist[1]])
+                #self.nearest[number].set(self.colourNames[minDist[1]])
                 #self.detect_colour = False
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
@@ -402,6 +396,8 @@ class CubeGUI:
                 
     def _delete_window(self):
         print("closing")
+        pickle.dump(self.colours,open("colours.p","wb"))
+        pickle.dump(self.cubestring,open("cubestring.p","wb"))
         try:
             del(self.vid)
             self.window.destroy()
@@ -412,6 +408,7 @@ class MyVideoCapture:
     def __init__(self, video_source=0):
         # Open the video source
         self.vid = cv2.VideoCapture(video_source)
+        #self.vid.set(cv2.CAP_PROP_EXPOSURE,-4); 
         if not self.vid.isOpened():
             raise ValueError("Unable to open video source", video_source)
 
