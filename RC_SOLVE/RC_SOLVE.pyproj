@@ -28,6 +28,7 @@
     <Compile Include="Cube2.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="KNN_Trainer.py" />
     <Compile Include="RC_SOLVE.py" />
   </ItemGroup>
   <ItemGroup>

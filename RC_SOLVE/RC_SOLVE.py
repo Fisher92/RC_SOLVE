@@ -1,5 +1,6 @@
 #import Cube
 import Cube2
+import OS
 import math
 import tkinter as Tk
 import kociemba as kc
@@ -16,7 +17,6 @@ class CubeGUI:
     def __init__(self,Cube,video_source,**kwargs):           
         self.window = Tk.Tk()
         self.cube = Cube
-        #self.cubestring = self.cube.cube
         self.video_source = video_source
         self.steplist = []
         self.calibration_RGB = []
@@ -348,7 +348,8 @@ class CubeGUI:
             for number, item in enumerate(self.Face_Rectangles):
                 minDist = (np.inf, None)
                 #mask = cv2.erode(test[150:210,200:260], None, iterations=2)
-                mask = cv2.erode(test[item[0][0]:item[1][0],item[0][1]:item[1][1]], None, iterations=2)
+                #mask = cv2.erode(test[item[0][0]:item[1][0],item[0][1]:item[1][1]], None, iterations=2)
+                mask = cv2.erode(test[item[0][1]:item[1][1],item[0][0]:item[1][0]], None, iterations=2)
                 b,g,r,_=np.uint8(cv2.mean(mask))
                 mean = cv2.mean(mask)
 
